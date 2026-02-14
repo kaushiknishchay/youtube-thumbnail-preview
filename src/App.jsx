@@ -16,12 +16,16 @@ const App = () => {
             }
             const reader = new FileReader();
             reader.onload = (e) => {
-                setImages(prev => [...prev, e.target.result]);
+                setImages(prev => [...prev, { src: e.target.result, title: '' }]);
             };
             reader.readAsDataURL(file);
         }
         // Reset input to allow uploading the same file again if needed
         e.target.value = '';
+    };
+
+    const updateTitle = (index, title) => {
+        setImages(prev => prev.map((img, i) => i === index ? { ...img, title } : img));
     };
 
     const removeImage = (indexToRemove) => {
@@ -44,6 +48,21 @@ const App = () => {
     const MOCK_CHANNEL = "Creative Guide";
     const MOCK_VIEWS = "1.2M views • 2 days ago";
     const TIMESTAMP = "12:45";
+
+    const getDisplayTitle = (index) => {
+        const currentImage = images[index];
+        const customTitle = currentImage?.title?.trim();
+
+        if (customTitle) return customTitle;
+
+        const activeTitles = images.filter(img => img.title?.trim());
+
+        if (activeTitles.length === 1) {
+            return activeTitles[0].title;
+        }
+
+        return MOCK_TITLE;
+    };
 
     const tabs = [
         { id: 'all', label: 'All Views', icon: LayoutGrid },
@@ -183,10 +202,11 @@ const App = () => {
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 items-start">
                                     {images.map((img, idx) => (
-                                        <div key={idx} className="relative group aspect-video rounded-lg overflow-hidden border dark:border-gray-700">
-                                            <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
+                                        <div key={idx} className="flex flex-col gap-2 w-full">
+                                            <div className="relative group aspect-video rounded-lg overflow-hidden border dark:border-gray-700 w-full">
+                                            <img src={img.src} alt={`Upload ${idx + 1}`} className="w-full h-full object-cover" />
                                             <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                                                 <button
                                                     onClick={() => removeImage(idx)}
@@ -199,6 +219,14 @@ const App = () => {
                                             <div className="absolute top-1 left-1 bg-black/60 text-white text-[10px] px-1.5 py-0.5 rounded">
                                                 #{idx + 1}
                                             </div>
+                                            </div>
+                                            <input
+                                                type="text"
+                                                value={img.title}
+                                                onChange={(e) => updateTitle(idx, e.target.value)}
+                                                placeholder="Optional video title"
+                                                className="w-full px-2 py-1.5 text-xs border rounded dark:bg-gray-800 dark:border-gray-700 dark:text-white focus:outline-none focus:border-blue-500 transition-colors"
+                                            />
                                         </div>
                                     ))}
 
@@ -274,7 +302,7 @@ const App = () => {
                                                     {images.map((img, idx) => (
                                                         <div key={idx} className="w-full mb-4 border-b dark:border-gray-900 pb-4 last:border-0 last:pb-0">
                                                             <div className="aspect-video relative w-full bg-black">
-                                                                <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                                                                <img src={img.src} alt="Thumbnail" className="w-full h-full object-cover" />
                                                                 <Timestamp className="bottom-2 right-2 text-xs px-1.5 py-0.5" />
                                                             </div>
                                                             <div className="flex gap-3 p-3">
@@ -283,7 +311,7 @@ const App = () => {
                                                                 </div>
                                                                 <div className="flex-1">
                                                                     <h3 className="text-[15px] font-normal text-gray-900 dark:text-white leading-snug mb-1 line-clamp-2">
-                                                                        {MOCK_TITLE}
+                                                                        {getDisplayTitle(idx)}
                                                                     </h3>
                                                                     <div className="text-xs text-gray-600 dark:text-gray-400">
                                                                         {MOCK_CHANNEL} • {MOCK_VIEWS}
@@ -322,12 +350,12 @@ const App = () => {
                                                     {images.map((img, idx) => (
                                                         <div key={idx} className="flex gap-3 p-3 border-b border-gray-50 dark:border-gray-900">
                                                             <div className="relative w-[160px] aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-800">
-                                                                <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                                                                <img src={img.src} alt="Thumbnail" className="w-full h-full object-cover" />
                                                                 <Timestamp className="bottom-1 right-1 text-[9px] px-1 py-0" />
                                                             </div>
                                                             <div className="flex-1 min-w-0 flex flex-col gap-1">
                                                                 <h3 className="text-[14px] font-normal text-gray-900 dark:text-white leading-tight line-clamp-2">
-                                                                    {MOCK_TITLE}
+                                                                    {getDisplayTitle(idx)}
                                                                 </h3>
                                                                 <div className="text-[11px] text-gray-500 dark:text-gray-400 mt-0.5">
                                                                     {MOCK_CHANNEL}
@@ -379,12 +407,12 @@ const App = () => {
                                                         <div key={idx} className={`flex items-center gap-3 p-3 ${idx === 0 ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}>
                                                             <div className="w-4 text-center text-xs text-gray-500 dark:text-gray-400 font-medium">{idx + 1}</div>
                                                             <div className="relative w-[120px] aspect-video flex-shrink-0 rounded-lg overflow-hidden bg-gray-100 shadow-sm border border-gray-200 dark:border-gray-700">
-                                                                <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                                                                <img src={img.src} alt="Thumbnail" className="w-full h-full object-cover" />
                                                                 <Timestamp className="bottom-1 right-1 text-[8px] px-1 py-0 scale-90 origin-bottom-right" />
                                                             </div>
                                                             <div className="flex-1 min-w-0 flex flex-col">
                                                                 <h3 className="text-[13px] font-medium text-gray-900 dark:text-gray-100 leading-tight line-clamp-2 mb-1">
-                                                                    {MOCK_TITLE}
+                                                                    {getDisplayTitle(idx)}
                                                                 </h3>
                                                                 <div className="text-[11px] text-gray-500 dark:text-gray-400">
                                                                     {MOCK_CHANNEL}
@@ -424,7 +452,7 @@ const App = () => {
                                                 {images.map((img, idx) => (
                                                     <div key={idx} className="group cursor-pointer">
                                                         <div className="relative aspect-video rounded-xl overflow-hidden mb-3 shadow-sm ring-1 ring-black/5 dark:ring-white/10 group-hover:rounded-none transition-all duration-300">
-                                                            <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                                                            <img src={img.src} alt="Thumbnail" className="w-full h-full object-cover" />
                                                             <Timestamp />
                                                         </div>
                                                         <div className="flex gap-3">
@@ -433,7 +461,7 @@ const App = () => {
                                                             </div>
                                                             <div>
                                                                 <h3 className="font-semibold text-gray-900 dark:text-white leading-tight line-clamp-2 text-sm md:text-base mb-1">
-                                                                    {MOCK_TITLE}
+                                                                    {getDisplayTitle(idx)}
                                                                 </h3>
                                                                 <p className="text-sm text-gray-500 dark:text-gray-400">{MOCK_CHANNEL}</p>
                                                                 <p className="text-sm text-gray-500 dark:text-gray-400">{MOCK_VIEWS}</p>
@@ -463,12 +491,12 @@ const App = () => {
                                                 {images.map((img, idx) => (
                                                     <div key={idx} className="flex gap-2 group cursor-pointer">
                                                         <div className="relative w-[168px] aspect-video flex-shrink-0 rounded-lg overflow-hidden">
-                                                            <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                                                            <img src={img.src} alt="Thumbnail" className="w-full h-full object-cover" />
                                                             <Timestamp />
                                                         </div>
                                                         <div className="flex-1 min-w-0">
                                                             <h3 className="text-sm font-medium text-gray-900 dark:text-white line-clamp-2 leading-snug mb-1 group-hover:text-blue-600 dark:group-hover:text-blue-400">
-                                                                {MOCK_TITLE}
+                                                                {getDisplayTitle(idx)}
                                                             </h3>
                                                             <p className="text-xs text-gray-500 dark:text-gray-400 mb-0.5">{MOCK_CHANNEL}</p>
                                                             <p className="text-xs text-gray-500 dark:text-gray-400">754K views • 3 weeks ago</p>
@@ -510,12 +538,12 @@ const App = () => {
                                                             {images.map((img, idx) => (
                                                                 <div key={idx} className="space-y-3">
                                                                     <div className="w-full aspect-video bg-black rounded-lg overflow-hidden shadow-2xl ring-4 ring-white/10 relative group cursor-pointer hover:ring-white/30 transition-all">
-                                                                        <img src={img} alt="Thumbnail" className="w-full h-full object-cover" />
+                                                                        <img src={img.src} alt="Thumbnail" className="w-full h-full object-cover" />
                                                                         <div className="absolute bottom-3 right-3 bg-black/90 px-2 py-1 rounded text-xs font-bold">12:45</div>
                                                                         {idx === 0 && <div className="absolute inset-0 ring-4 ring-white transition-all rounded-lg"></div>}
                                                                     </div>
                                                                     <div className="space-y-1">
-                                                                        <h2 className="text-sm font-bold text-gray-100 line-clamp-2">{MOCK_TITLE}</h2>
+                                                                        <h2 className="text-sm font-bold text-gray-100 line-clamp-2">{getDisplayTitle(idx)}</h2>
                                                                         <div className="flex items-center gap-2 text-gray-400 text-xs">
                                                                             <span className="text-gray-300 font-medium">{MOCK_CHANNEL}</span>
                                                                             <span>•</span>
